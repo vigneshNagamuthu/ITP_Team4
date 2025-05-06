@@ -12,7 +12,15 @@ username: admin
 password: admin
 
 In future, you can add firewall, etc. 
-SQL data processing in progress. 
 
 Check out:
 Dashboard >> Simple Streaming Example
+
+# Grafana server 
+Download putty (https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
+1. Key in host ip>>
+Host IP: 47.129.206.108
+
+2. Set up connection
+SSH >> Auth >> Credentials
+Upload private key in WebDashboard folder
