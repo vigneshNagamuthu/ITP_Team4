@@ -9,7 +9,7 @@ Virtual Private Cloud
 
 # Credentials
 username: admin
-password: admin
+password: NEW_PASSWORD
 
 In future, you can add firewall, etc. 
 
