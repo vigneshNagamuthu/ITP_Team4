@@ -7,6 +7,10 @@ Virtual Private Cloud
   Grafana server: http://47.129.206.108:3000
     TestData
 
+# Credentials
+username: admin
+password: admin
+
 In future, you can add firewall, etc. 
 SQL data processing in progress. 
 
