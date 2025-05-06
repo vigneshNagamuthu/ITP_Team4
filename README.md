@@ -17,6 +17,7 @@ Check out:
 Dashboard >> Simple Streaming Example
 
 # Grafana server 
+In case any problem: 
 Download putty (https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 1. Key in host ip>>
 Host IP: 47.129.206.108
