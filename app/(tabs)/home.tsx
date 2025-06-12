@@ -1,46 +1,112 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
+import { useTheme } from 'app/ThemeContext';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Modal,
+  NativeModules,
+  PermissionsAndroid,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+
+const { SignalStrength } = NativeModules;
 
 const Home = () => {
   const [latitude, setLatitude] = useState<string | null>(null);
   const [longitude, setLongitude] = useState<string | null>(null);
   const [adminMenuVisible, setAdminMenuVisible] = useState(false);
+  const [signalInfo, setSignalInfo] = useState<{ rsrp?: number; rsrq?: number; sinr?: number } | null>(null);
   const router = useRouter();
+  const { effectiveTheme } = useTheme();
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Permission to access location was denied');
-        return;
-      }
-    })();
-  }, []);
+  const requestSignalPermissions = async () => {
+    if (Platform.OS === 'android') {
+      const granted = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
+      ]);
+
+      return (
+        granted[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] === PermissionsAndroid.RESULTS.GRANTED &&
+        granted[PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE] === PermissionsAndroid.RESULTS.GRANTED
+      );
+    }
+    return true;
+  };
 
   const getLocation = async () => {
-    let location = await Location.getCurrentPositionAsync({});
-    setLatitude(location.coords.latitude.toFixed(2) + '°N');
-    setLongitude(location.coords.longitude.toFixed(2) + '°E');
+    try {
+      // Use Geolocation API or expo-location if you want more accuracy
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude.toFixed(5) + '°N');
+          setLongitude(position.coords.longitude.toFixed(5) + '°E');
+        },
+        (error) => {
+          console.error('Location fetch error:', error);
+          alert('Error fetching location');
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+      );
+    } catch (err) {
+      console.error('Location fetch error:', err);
+      alert('Error fetching location');
+    }
+  };
+
+  const getSignal = async () => {
+    const hasPermission = await requestSignalPermissions();
+    if (!hasPermission) {
+      alert('Permission to access signal info was denied');
+      return;
+    }
+
+    if (!SignalStrength) {
+      console.error('SignalStrength module is not linked properly');
+      alert('Native module not found. Please rebuild the project.');
+      return;
+    }
+
+    try {
+      const data = await SignalStrength.getSignalInfo();
+      console.log('Signal Data:', data);
+      setSignalInfo({
+        rsrp: data.rsrp,
+        rsrq: data.rsrq,
+        sinr: data.sinr ?? data.snr,
+      });
+    } catch (err) {
+      console.error('Signal fetch error:', err);
+      alert('Error fetching signal data');
+    }
   };
 
   const handleLogout = () => {
     setAdminMenuVisible(false);
     setLatitude(null);
     setLongitude(null);
-    router.replace('/login');
+    setSignalInfo(null);
+    router.replace('../login');
   };
 
+  const themeStyles = effectiveTheme === 'dark'
+    ? { backgroundColor: '#222', textColor: '#fff', buttonColor: '#444' }
+    : { backgroundColor: '#fff', textColor: '#000', buttonColor: '#d3d3d3' };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
       <View style={styles.headerContainer}>
-        <Text style={styles.dashboardTitle}>DashBoard</Text>
+        <Text style={[styles.dashboardTitle, { color: themeStyles.textColor }]}>DashBoard</Text>
         <TouchableOpacity onPress={() => setAdminMenuVisible(true)}>
-          <Text style={styles.adminText}>Admin</Text>
+          <Text style={[styles.adminText, { color: themeStyles.textColor }]}>Admin</Text>
         </TouchableOpacity>
       </View>
+
       <Modal
         visible={adminMenuVisible}
         transparent
@@ -48,24 +114,35 @@ const Home = () => {
         onRequestClose={() => setAdminMenuVisible(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setAdminMenuVisible(false)}>
-          <View style={styles.dropdownMenu}>
+          <View style={[styles.dropdownMenu, { backgroundColor: themeStyles.backgroundColor }]}>
             <TouchableOpacity style={styles.dropdownItem} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={20} color="#b30000" style={{ marginRight: 8 }} />
-              <Text style={styles.dropdownText}>Logout</Text>
+              <Text style={[styles.dropdownText, { color: themeStyles.textColor }]}>Logout</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
       </Modal>
+
       <View style={styles.centerContainer}>
-        <TouchableOpacity style={styles.button} onPress={getLocation}>
-          <Text style={styles.buttonText}>GET LOCATION</Text>
+        <TouchableOpacity style={[styles.button, { backgroundColor: themeStyles.buttonColor }]} onPress={getLocation}>
+          <Text style={[styles.buttonText, { color: themeStyles.textColor }]}>GET LOCATION</Text>
         </TouchableOpacity>
-        {latitude && longitude && (
+        <TouchableOpacity style={[styles.button, { backgroundColor: themeStyles.buttonColor }]} onPress={getSignal}>
+          <Text style={[styles.buttonText, { color: themeStyles.textColor }]}>GET SIGNAL</Text>
+        </TouchableOpacity>
+
+        {(latitude && longitude) && (
           <View style={styles.locationContainer}>
-            <Text>Latitude</Text>
-            <Text>{latitude}</Text>
-            <Text>Longitude</Text>
-            <Text>{longitude}</Text>
+            <Text style={{ color: themeStyles.textColor }}>Latitude: {latitude}</Text>
+            <Text style={{ color: themeStyles.textColor }}>Longitude: {longitude}</Text>
+          </View>
+        )}
+
+        {signalInfo && (
+          <View style={styles.locationContainer}>
+            <Text style={{ color: themeStyles.textColor }}>RSRP: {signalInfo.rsrp} dBm</Text>
+            <Text style={{ color: themeStyles.textColor }}>RSRQ: {signalInfo.rsrq} dB</Text>
+            <Text style={{ color: themeStyles.textColor }}>SINR: {signalInfo.sinr} dB</Text>
           </View>
         )}
       </View>
@@ -74,25 +151,7 @@ const Home = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  timeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 40,
-  },
-  headerTime: {
-    fontSize: 14,
-    color: 'black',
-  },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  container: { flex: 1 },
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -102,16 +161,8 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     alignSelf: 'center',
   },
-  dashboardTitle: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  adminText: {
-    fontSize: 18,
-    color: 'blue',
-    textDecorationLine: 'underline',
-  },
+  dashboardTitle: { fontSize: 36, fontWeight: 'bold' },
+  adminText: { fontSize: 18, textDecorationLine: 'underline' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.2)',
@@ -121,7 +172,6 @@ const styles = StyleSheet.create({
   dropdownMenu: {
     marginTop: 60,
     marginRight: 20,
-    backgroundColor: '#fff',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -132,33 +182,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
   },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  dropdownText: {
-    color: '#b30000',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  dropdownItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+  dropdownText: { fontSize: 16, fontWeight: 'bold' },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   button: {
-    backgroundColor: '#d3d3d3',
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
-  },
-  buttonText: {
-    fontSize: 16,
-  },
-  locationContainer: {
+    minWidth: 200,
     alignItems: 'center',
   },
+  buttonText: { fontSize: 16 },
+  locationContainer: { alignItems: 'center', marginTop: 20 },
 });
 
 export default Home;

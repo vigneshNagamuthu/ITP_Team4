@@ -1,0 +1,6 @@
+// android/settings.gradle
+rootProject.name = "SignalTestApp" // <-- Use your app name here
+
+apply from: file("../node_modules/react-native/react-native.gradle")
+
+include(":app")

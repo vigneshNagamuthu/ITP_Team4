@@ -1,17 +1,24 @@
 // app/(tabs)/_layout.tsx
-import { Ionicons } from '@expo/vector-icons'; // For tab icons
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from 'app/ThemeContext';
 import { Tabs } from 'expo-router';
 
 export default function TabsLayout() {
+  const { effectiveTheme } = useTheme();
+
+  const tabBarStyles = effectiveTheme === 'dark'
+    ? { backgroundColor: '#222', activeTintColor: '#4A90E2', inactiveTintColor: '#888' }
+    : { backgroundColor: '#fff', activeTintColor: '#4A90E2', inactiveTintColor: '#666' };
+
   return (
     <Tabs
       screenOptions={{
-        headerShown: false, // Hide default header to use your custom one
-        tabBarActiveTintColor: '#4A90E2', // Active tab color
-        tabBarInactiveTintColor: '#888', // Inactive tab color
+        headerShown: false,
+        tabBarActiveTintColor: tabBarStyles.activeTintColor,
+        tabBarInactiveTintColor: tabBarStyles.inactiveTintColor,
         tabBarStyle: {
-          backgroundColor: '#000', // Dark background for the tab bar
-          borderTopWidth: 0, // Remove border at top of tab bar
+          backgroundColor: tabBarStyles.backgroundColor,
+          borderTopWidth: 0,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -19,17 +26,16 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="home" // Corresponds to app/(tabs)/home.tsx
+        name="home"
         options={{
-          title: 'Dashboard', // Label for the tab
+          title: 'Dashboard',
           tabBarIcon: ({ color }) => (
             <Ionicons name="home-outline" size={24} color={color} />
           ),
         }}
       />
-      {/* You can add more tabs here later, e.g.:
       <Tabs.Screen
-        name="settings" // Corresponds to app/(tabs)/settings.tsx
+        name="settings"
         options={{
           title: 'Settings',
           tabBarIcon: ({ color }) => (
@@ -37,7 +43,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-      */}
     </Tabs>
   );
 }

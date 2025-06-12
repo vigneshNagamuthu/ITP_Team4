@@ -1,3 +1,4 @@
+import { ThemeType, useTheme } from 'app/ThemeContext';
 import React, { useState } from 'react';
 import {
   Button,
@@ -11,7 +12,7 @@ import {
   View,
 } from 'react-native';
 
-type Option = { label: string; value: string };
+type Option = { label: string; value: ThemeType }; // Update value to ThemeType
 type ModalState = { visible: boolean; key: string; options: Option[] };
 
 const OPTIONS: { [key: string]: Option[] } = {
@@ -22,36 +23,31 @@ const OPTIONS: { [key: string]: Option[] } = {
   ],
 };
 
-function getLabel(options: Option[], value: string): string {
+function getLabel(options: Option[], value: ThemeType): string {
   const found = options.find((opt) => opt.value === value);
   return found ? found.label : '';
 }
 
 export default function SettingsScreen() {
-  // User Preferences
-  const [theme, setTheme] = useState<string>('light');
-
-  // Privacy & Permissions
+  const { theme, effectiveTheme, setTheme } = useTheme();
   const [dataConsent, setDataConsent] = useState<boolean>(false);
-
-  // Modal state
   const [modal, setModal] = useState<ModalState>({ visible: false, key: '', options: [] });
 
   const openModal = (key: string, options: Option[]) => setModal({ visible: true, key, options });
   const closeModal = () => setModal({ visible: false, key: '', options: [] });
 
-  const handleSelect = (value: string) => {
+  const handleSelect = (value: ThemeType) => { // Type value as ThemeType
     if (modal.key === 'theme') {
-      setTheme(value);
+      setTheme(value); // Now TypeScript knows value is ThemeType
     }
     closeModal();
   };
 
-  // Apply theme dynamically
-  const themeStyles = theme === 'dark' ? { backgroundColor: '#222', textColor: '#fff' } : { backgroundColor: '#fff', textColor: '#000' };
+  const themeStyles = effectiveTheme === 'dark' 
+    ? { backgroundColor: '#222', textColor: '#fff', sectionColor: '#333' }
+    : { backgroundColor: '#fff', textColor: '#000', sectionColor: '#f8f8f8' };
 
-  // Helper to render a setting with a modal
-  const renderModalSetting = (key: keyof typeof OPTIONS, label: string, value: string) => (
+  const renderModalSetting = (key: keyof typeof OPTIONS, label: string, value: ThemeType) => (
     <TouchableOpacity style={styles.rowColumn} onPress={() => openModal(key as string, OPTIONS[key])}>
       <Text style={[styles.settingLabel, { color: themeStyles.textColor }]}>{label}</Text>
       <View style={styles.selectedValueBox}>
@@ -62,19 +58,15 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={[styles.scroll, { backgroundColor: themeStyles.backgroundColor }]}>
-      <View style={styles.timeHeader}>
-        <Text style={[styles.headerTime, { color: themeStyles.textColor }]}>01:14</Text>
-      </View>
       <Text style={[styles.header, { color: themeStyles.textColor }]}>User Preferences</Text>
-      <View style={[styles.section, { backgroundColor: theme === 'dark' ? '#333' : '#f8f8f8' }]}>
+      <View style={[styles.section, { backgroundColor: themeStyles.sectionColor }]}>
         {renderModalSetting('theme', 'Theme', theme)}
         <Text style={[styles.unitInfo, { color: themeStyles.textColor }]}>
-          DEFAULT SETTINGS: [RSRP: dBm | RSRQ/SINR: dB | Speed: Mbps]
         </Text>
       </View>
 
       <Text style={[styles.header, { color: themeStyles.textColor }]}>Privacy & Permissions</Text>
-      <View style={[styles.section, { backgroundColor: theme === 'dark' ? '#333' : '#f8f8f8' }]}>
+      <View style={[styles.section, { backgroundColor: themeStyles.sectionColor }]}>
         <View style={styles.row}>
           <Text style={{ color: themeStyles.textColor }}>Data Consent</Text>
           <Switch value={dataConsent} onValueChange={setDataConsent} />
@@ -85,10 +77,9 @@ export default function SettingsScreen() {
         <Text style={{ color: themeStyles.textColor, fontSize: 13 }}>Storage: Granted</Text>
       </View>
 
-      {/* Modal for options */}
       <Modal visible={modal.visible} transparent animationType="fade" onRequestClose={closeModal}>
         <Pressable style={styles.modalOverlay} onPress={closeModal}>
-          <View style={[styles.modalContent, { backgroundColor: theme === 'dark' ? '#333' : '#fff' }]}>
+          <View style={[styles.modalContent, { backgroundColor: themeStyles.backgroundColor }]}>
             {modal.options.map((opt) => (
               <TouchableOpacity
                 key={opt.value}

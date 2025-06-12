@@ -1,0 +1,55 @@
+// android/app/build.gradle
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+
+// Removed unused import
+// import com.android.build.OutputFile
+
+project.ext.react = [
+    enableHermes: true,  // clean and rebuild if you change this
+]
+
+apply from: "../../node_modules/react-native/react.gradle"
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.signaltest.mobile" // <-- Replace with your package name
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    packagingOptions {
+        resources {
+            excludes += ['/META-INF/**']
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    namespace "com.signaltest.mobile" // <-- Must match your package structure
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    implementation("com.facebook.react:react-android")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.facebook.fresco:fresco:2.6.0")
+}
+
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
