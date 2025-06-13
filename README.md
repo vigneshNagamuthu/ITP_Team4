@@ -2,6 +2,52 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+### 🚨 Important: Custom Native Module Support (Dev Client)
+
+This app includes a custom **native Kotlin module** to collect 5G network signal strength (e.g., RSRP, RSRQ, SINR, GPS).  
+> **Note:** You **cannot use Expo Go** to run this app because Expo Go does not support custom native code.
+
+Instead, you must use a **custom Expo Dev Client** built with EAS.
+
+## 📲 How to Run the App with Dev Client
+
+1. Install dependencies
+```bash
+npm install
+```
+
+2. Install the Dev Client package
+```bash
+npx expo install expo-dev-client
+```
+
+3. Login and configure EAS
+```bash
+eas login
+eas build:configure
+```
+
+4. Build the Dev Client APK
+```bash
+npx eas build --profile development --platform android
+```
+
+After the build, download the APK or scan the QR code to install it on your Android device.
+
+5. Start the Metro server
+```bash
+npx expo start --dev-client
+```
+
+6. Scan the QR code
+Open the **custom Dev Client app** (the APK you installed) and scan the QR code.  
+> ⚠️ **Do NOT use Expo Go.**
+
+
+### 🚨 Testing App layout and User interface 
+You can test the app's layout, button functionality, and overall user interface using an Android emulator or iOS simulator.
+> **Note:** When running the app on an emulator or simulator, the custom native module responsible for retrieving 5G signal values (like RSRP, RSRQ, SINR) and GPS coordinates will not function. These features require an actual physical device with cellular and GPS capabilities.
+
 ## Get started
 
 1. Install dependencies
@@ -23,7 +69,7 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
 
 ## Get a fresh project
 

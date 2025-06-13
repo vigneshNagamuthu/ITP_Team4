@@ -6,13 +6,13 @@ export type ThemeType = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: ThemeType;
-  effectiveTheme: 'light' | 'dark'; // The resolved theme (light or dark)
+  effectiveTheme: 'light' | 'dark';
   setTheme: (theme: ThemeType) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'system',
-  effectiveTheme: 'light', // Default to light until system theme is resolved
+  effectiveTheme: 'light',
   setTheme: () => {},
 });
 
@@ -23,14 +23,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const updateTheme = () => {
       if (theme === 'system') {
-        const systemTheme = Appearance.getColorScheme() || 'light'; // Fallback to 'light' if null
+        const systemTheme = Appearance.getColorScheme() || 'light';
         setEffectiveTheme(systemTheme);
       } else {
         setEffectiveTheme(theme);
       }
     };
 
-    updateTheme(); // Initial update
+    updateTheme(); // Initial theme update
 
     if (theme === 'system') {
       const listener = Appearance.addChangeListener(({ colorScheme }) => {
